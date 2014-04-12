@@ -1,5 +1,6 @@
 verifyRGS
 ==============
-Un script permettant de vérifier si un certificat ou une CRL est conforme aux exigences du RGS.
+Un script (utilisant openssl) permettant de vérifier si un certificat ou une CRL est conforme aux exigences du RGS.
+Prérequis: openssl doit être installé sur le poste.
 
-Pour le moment basé sur le RGS v1.0.
+Exigences extraites de l'annexe A14 du RGS v1.0: Profils de Certificats / LCR / OCSP et Algorithmes Cryptographiques, Version 2.3 du 11 février 2010
