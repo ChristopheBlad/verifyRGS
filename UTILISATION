@@ -1,11 +1,14 @@
-Pré-requis: openssl doit être installé
+Pré-requis: 
+- openssl doit être installé
+- copier dans le répertoire du script les certificats avec l'extension .cer
 
 Commande:
-./verifyRGS.sh certificat.cer
+./verifyRGS.sh
 
 Note:
-- Le script fonctionne quel que soit l'encodage du certificat (PEM ou DER)
+- Le script fonctionne quel que soit l'encodage du certificat (PEM ou DER) mais il faut que le fichier ait l'extension .cer
 - Le script va générer:
 	- un fichier certificat.cer.txt contenant l'export du certificat au format texte
 	- un fichier certificat.cer.asn1.txt contenant une représentation texte de l'encodage ASN.1 du certificat (utile pour vérifier l'encodage des champs du DN ou l'utilisation d'extensions "étranges")
+	- les fichiers sont renommés "<nom AC> - <nom subject>.cer.txt" (pratique car du coup classés par AC)
 	

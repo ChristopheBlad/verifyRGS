@@ -2,27 +2,28 @@
 #deux script, vérifier les certificats et vérifier les CRL
 
 #Renommer les fichiers: issuerCN - subjectCN
-
+for i in *.cer
+do
 
 #essayer de trouver une chaine "Certificate:", si oui enregistrer, si non changer encodage
-openssl x509 -text -noout -in $1 -inform PEM > $1.txt
+openssl x509 -text -noout -in $i -inform PEM > $i.txt
 
-if grep "Certificate" $1.txt
+if grep "Certificate:" $i.txt
 then
-	openssl x509 -text -noout -in $1 -inform PEM > $1.txt
-    openssl asn1parse -in $1 -inform PEM > $1.asn1.txt
+	openssl x509 -text -noout -in $i -inform PEM > $i.txt
+    openssl asn1parse -in $i -inform PEM > $i.asn1.txt
 else
-	openssl x509 -text -noout -in $1 -inform DER > $1.txt
-    openssl asn1parse -in $1 -inform DER > $1.asn1.txt
+	openssl x509 -text -noout -in $i -inform DER > $i.txt
+    openssl asn1parse -in $i -inform DER > $i.asn1.txt
 fi
 
 #Extraction du CN du porteur
-issuerCN=$(grep -A 1 "commonName" $1.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
-subjectCN=$(grep -A 1 "commonName" $1.asn1.txt | sed -n '5,5p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+issuerCN=$(grep -A 1 "commonName" $i.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+subjectCN=$(grep -A 1 "commonName" $i.asn1.txt | sed -n '5,5p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
 
 filename=$(echo "$issuerCN - $subjectCN")
-mv $1.txt "$filename.txt"
-mv $1.asn1.txt "$filename.asn1.txt"
+mv $i.txt "$filename.txt"
+mv $i.asn1.txt "$filename.asn1.txt"
 
 #Subject
 echo "---------------------------------------------------------------------------------------------------"
@@ -138,3 +139,4 @@ echo "------------"
 grep -A 1 "QCStatements" "$filename.txt"
 
 echo "*************************************************************"
+done
