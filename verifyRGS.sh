@@ -19,9 +19,11 @@ do
     #Extraction du CN du porteur
     issuerCN=$(grep -A 1 "commonName" $i.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
     subjectCN=$(grep -A 1 "commonName" $i.asn1.txt | sed -n '5,5p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+    #serial=$(grep "Serial Number" $i.txt | sed 's/\(.*\)(\(.*\))/\2/')
+    serial=$(grep -A 1 ":02" $i.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
 
     #Renommer les fichiers: issuerCN - subjectCN
-    filename=$(echo "$issuerCN - $subjectCN")
+    filename=$(echo "$issuerCN - $subjectCN - $serial")
     mv $i.txt "$filename.txt"
     mv $i.asn1.txt "$filename.asn1.txt"
 
@@ -88,15 +90,23 @@ do
     echo "------------------------------------------"
     grep "X509v3 extensions" "$filename.txt" | sed -e "s/x509 /%/g"
 
-    echo "-------------------"
+    echo "-------------------------------------------------------------------------------------------------"
     echo "Key Usage: Critical"
     echo "AC: cRLSign, keyCertSign"
     echo "Authentification: digitalSignature"
-    echo "Signature, Cachet: nonRepudiation"
+    echo "Signature: nonRepudiation"
     echo "Confidentialité: dataEncipherment"
-    echo "Authentification serveur: keyEncipherement"
-    echo "-------------------"
+    echo "Authentification serveur (serveur): keyEncipherement (RSA), keyAgreement (DH) et digitalSignature"
+    echo "Authentification serveur (client): digitalSignature ou (exclusif) keyAgreement"
+    echo "Cachet: digitalSignature (et éventuellement nonRepudiation)"
+    echo "-------------------------------------------------------------------------------------------------"
     grep -A 1 "X509v3 Key Usage" "$filename.txt" | sed -e "s/x509 /%/g"
+
+    echo "-------------------------------------------------------------------------------------------------------------------"
+    echo "Extended Key Usage"
+    echo "Timestamping: l'extension doit être présente, marquée critique, et ne contenir que l'identifiant id-kp-timeStamping"
+    echo "-------------------------------------------------------------------------------------------------------------------"
+    grep -A 1 "X509v3 Extended Key Usage" "$filename.txt" | sed -e "s/x509 /%/g"
 
     echo "-----------------------------------------------"
     echo "Basic Constraints (Critical si certificat d'AC)"
@@ -136,7 +146,7 @@ do
     echo "------------"
     echo "QCStatements"
     echo "------------"
-    grep -A 1 "QCStatements" "$filename.txt"
+    grep -A 2 "qcStatements" "$filename.txt"
 
     echo "*****************************************************************************************"
 done
@@ -146,10 +156,13 @@ for j in crl/*.crl
 do
     echo $j
     openssl crl -text -noout -inform DER -in $j > $j.txt
-    issuerCN=$(openssl asn1parse -inform DER -in $j | grep -A 1 "commonName" | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
-    echo "$issuerCN"
-    filename=$(echo "$issuerCN")
+    openssl asn1parse -inform DER -in $j > $j.asn1.txt
+    issuerCN=$(grep -A 1 "commonName" $j.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+    serial=$(grep -A 1 "CRL Number" $j.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+    #filename=$(echo "$issuerCN")
+    filename=$(echo "$issuerCN - CRL - $serial")
     mv $j.txt "$filename.crl.txt"
+    mv $j.asn1.txt "$filename.crl.asn1.txt"
     #Version
     echo "-----------------------------------------------------------------------------------------"
     echo "Version: la valeur de ce champ doit être '1', indiquant qu'il s'agit d'une LCR version 2."
