@@ -5,27 +5,27 @@ for i in certificats/*.cer
 do
 
     #essayer de trouver une chaine "Certificate:", si oui enregistrer, si non changer encodage
-    openssl x509 -text -noout -in $i -inform PEM > $i.txt
+    openssl x509 -text -noout -in "$i" -inform PEM > $i.txt
 
     if grep "Certificate:" $i.txt
     then
-    	openssl x509 -text -noout -in $i -inform PEM > $i.txt
-        openssl asn1parse -in $i -inform PEM > $i.asn1.txt
+    	openssl x509 -text -noout -in "$i" -inform PEM > $i.txt
+        openssl asn1parse -in "$i" -inform PEM > $i.asn1.txt
     else
-    	openssl x509 -text -noout -in $i -inform DER > $i.txt
-        openssl asn1parse -in $i -inform DER > $i.asn1.txt
+    	openssl x509 -text -noout -in "$i" -inform DER > $i.txt
+        openssl asn1parse -in "$i" -inform DER > $i.asn1.txt
     fi
 
     #Extraction du CN du porteur
-    issuerCN=$(grep -A 1 "commonName" $i.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
-    subjectCN=$(grep -A 1 "commonName" $i.asn1.txt | sed -n '5,5p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+    issuerCN=$(grep -A 1 "commonName" "$i.asn1.txt" | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+    subjectCN=$(grep -A 1 "commonName" "$i.asn1.txt" | sed -n '5,5p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
     #serial=$(grep "Serial Number" $i.txt | sed 's/\(.*\)(\(.*\))/\2/')
-    serial=$(grep -A 1 ":02" $i.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+    serial=$(grep -A 1 ":02" "$i.asn1.txt" | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
 
     #Renommer les fichiers: issuerCN - subjectCN
     filename=$(echo "$issuerCN - $subjectCN - $serial")
-    mv $i.txt "$filename.txt"
-    mv $i.asn1.txt "$filename.asn1.txt"
+    mv "$i.txt" "$filename.txt"
+    mv "$i.asn1.txt" "$filename.asn1.txt"
 
     #Subject
     echo "---------------------------------------------------------------------------------------------------"
@@ -155,14 +155,14 @@ done
 for j in crl/*.crl
 do
     echo $j
-    openssl crl -text -noout -inform DER -in $j > $j.txt
-    openssl asn1parse -inform DER -in $j > $j.asn1.txt
-    issuerCN=$(grep -A 1 "commonName" $j.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
-    serial=$(grep -A 1 "CRL Number" $j.asn1.txt | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+    openssl crl -text -noout -inform DER -in "$j" > $j.txt
+    openssl asn1parse -inform DER -in "$j" > $j.asn1.txt
+    issuerCN=$(grep -A 1 "commonName" "$j.asn1.txt" | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
+    serial=$(grep -A 1 "CRL Number" "$j.asn1.txt" | sed -n '2,2p' | sed 's/\(.*\):\(.*\):\(.*\):\(.*\)/\4/')
     #filename=$(echo "$issuerCN")
     filename=$(echo "$issuerCN - CRL - $serial")
-    mv $j.txt "$filename.crl.txt"
-    mv $j.asn1.txt "$filename.crl.asn1.txt"
+    mv "$j.txt" "$filename.crl.txt"
+    mv "$j.asn1.txt" "$filename.crl.asn1.txt"
     #Version
     echo "-----------------------------------------------------------------------------------------"
     echo "Version: la valeur de ce champ doit être '1', indiquant qu'il s'agit d'une LCR version 2."
